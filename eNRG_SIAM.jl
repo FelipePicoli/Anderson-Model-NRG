@@ -3,11 +3,11 @@
 #################################################################################################################
 
 N_max=5            # Número de iterações
-E_corte=20         # Energia de Corte
-G=3.0              # Lambda
-Ed=-15.0           # Energia do nível unicamente ocupado
-U=30.0             # Energia de respulsão
-GammaV=1.0         # Gamma   (proporcional ao quadrado da hibridização)
+E_corte=5         # Energia de Corte
+G=1.0              # Lambda
+Ed=-0.0           # Energia do nível unicamente ocupado
+U=0.0             # Energia de respulsão
+V=0.1         # Gamma   (proporcional ao quadrado da hibridização)
 
 #################################################################################################################
 #                                                 Importing                                                      #
@@ -412,7 +412,7 @@ function CutandPrint(E_corte,E_eig_tot, Vec_eig_tot, RegisN_tot,file)
             push!(enerN,en)
             RegisN=vcat(RegisN,[RegisN_tot[i,1] RegisN_tot[i,2]])   # adiciona uma ultima linha a RegisN com os valores de q e dS
             push!(Vec_eigN, Vec_eig_tot[i])
-            println(RegisN_tot[i,1],' ',RegisN_tot[i,2]," =====> ",en)
+            #println(RegisN_tot[i,1],' ',RegisN_tot[i,2]," =====> ",en)
             
             write(file," ",string(RegisN_tot[i,1])," | ",string(RegisN_tot[i,2])," ======> ",string(en),"\n")
     
@@ -454,17 +454,17 @@ end
 function tENless1(G,N,GammaV)
     
     tn=0.0
-    FacVivaldo=(G-1.0)/(G*log(G))
+    #FacVivaldo=(G-1.0)/(G*log(G))
     
     if N==0
                 
-        GammaVtio=2.0*GammaV/pi
+        #GammaVtio=2.0*GammaV/pi
         
-        tn+=sqrt(GammaVtio)/FacVivaldo
+        tn+=sqrt(2)*V
         
     else
         N-=1
-       tn+=FacVivaldo*(1.0-G^(-N-1.0))/(sqrt(1.0-G^(-2.0*N-1.0))*sqrt(1.0-G^(-2.0*N-3.0)))*G^(-N/2.0)/D_N(G,N+1)
+       tn+=G^(-N-1/2)
          
     end
     
@@ -486,19 +486,19 @@ end
 #                                          Função para Iteração                                                 #
 #################################################################################################################
 
-function Iteraction(Ed,U,GammaV,E_corte,G,N_max)
+function Iteraction(Ed,U,V,E_corte,G,N_max)
     
-    file=open("EnergiasSIAM_Lambda3.txt","w")
+    file=open("eNRG_lamb1_EnergiasSIAM.txt","w")
     write(file, "###########################################################################################\n")
-    write(file, "                E_d=",string(Ed),"  U=",string(U),"  Gama=",string(GammaV),"  Lambda=",string(G),"  E_corte=",string(E_corte),"\n")
+    write(file, "                E_d=",string(Ed),"  U=",string(U),"  Gama=",string(V),"  Lambda=",string(G),"  E_corte=",string(E_corte),"\n")
     write(file, "###########################################################################################\n")
     write(file, "---------------------------------------------------------------------------\n---------------------------------------------------------------------------\n")  
         
-    FacVivaldo=(G-1.0)/(G*log(G))      # Fator do Vivaldo
+    #FacVivaldo=(G-1.0)/(G*log(G))      # Fator do Vivaldo
 
-    GammaV=GammaV/G 
-    Utio=U/FacVivaldo
-    Edtio=Ed/FacVivaldo
+    V=V
+    Utio=U
+    Edtio=Ed
 
     Euns=[1.0,1.0,1.0]
     E_0=[0.0,Edtio,2.0*Edtio+Utio]
@@ -538,7 +538,7 @@ function Iteraction(Ed,U,GammaV,E_corte,G,N_max)
                                     
                     if soma!=0
                                     
-                        mH,VecContri=ConstMatHN(G,n,Regis,E,ElemInv,q,dS,GammaV)
+                        mH,VecContri=ConstMatHN(G,n,Regis,E,ElemInv,q,dS,V)
                         
                         ContriVecN=vcat(ContriVecN, [q dS [VecContri]])
                         
@@ -586,4 +586,4 @@ end
 #                                                 Rodando                                                       #
 #################################################################################################################
 
-@time Iteraction(Ed,U,GammaV,E_corte,G,N_max)
+@time Iteraction(Ed,U,V,E_corte,G,N_max)
